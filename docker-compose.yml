@@ -8,7 +8,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./db:/var/lib/mysql
+      - dbdata:/var/lib/mysql
       - ./backups/db:/var/backups
 #      - ./db/my.cnf:/etc/mysql/my.cnf
     env_file:
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     working_dir: ${APP_PATH_CONTAINER}
     volumes:
-      - ${APP_PATH_HOST}:${APP_PATH_CONTAINER}:cached
+      - ${APP_PATH_HOST}:${APP_PATH_CONTAINER}
     env_file:
       - ./.env
     networks:
@@ -44,6 +44,10 @@ services:
       - ./.env
     networks:
       - app-network
+
+volumes:
+  dbdata:
+    driver: local
 
 networks:
   app-network:
