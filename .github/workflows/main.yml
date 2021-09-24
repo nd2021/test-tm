@@ -43,6 +43,7 @@ jobs:
           context: ./php
           file: ./php/Dockerfile
           push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/php:test
           PHP_PORT: 9000
           PHP_XDEBUG_MODE: no
           PHP_XDEBUG_CLIENT_PORT: 9003
