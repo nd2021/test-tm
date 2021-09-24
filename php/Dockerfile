@@ -59,7 +59,7 @@ COPY symfony.ini /etc/php7/cli/conf.d/
 
 COPY symfony.pool.conf /etc/php7/php-fpm.d/
 
-WORKDIR /var/www/symfony
+WORKDIR /var/www/public
 
 CMD ["php-fpm7", "-F"]
 

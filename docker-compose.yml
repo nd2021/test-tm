@@ -1,54 +1,61 @@
-version: '3.7'
+version: '3.8'
 
 services:
   db:
-    container_name: t_db
     image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     restart: unless-stopped
     ports:
       - "3306:3306"
     volumes:
       - dbdata:/var/lib/mysql
-      - ./backups/db:/var/backups
-#      - ./db/my.cnf:/etc/mysql/my.cnf
-    env_file:
-      - ./.env
-    networks:
-      - app-network
 
   php:
+    image: nd2021/php
     build: ./php
-    container_name: t_php
+    environment:
+      PHP_PORT: ${PHP_PORT}
+      PHP_XDEBUG_MODE: ${PHP_XDEBUG_MODE}
+      PHP_XDEBUG_CLIENT_PORT: ${PHP_XDEBUG_CLIENT_PORT}
+      PHP_XDEBUG_CLIENT_HOST: ${PHP_XDEBUG_CLIENT_HOST}
     restart: unless-stopped
-    working_dir: ${APP_PATH_CONTAINER}
     volumes:
-      - ${APP_PATH_HOST}:${APP_PATH_CONTAINER}
-    env_file:
-      - ./.env
-    networks:
-      - app-network
+      - appdata:${APP_PATH_CONTAINER}
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.placement==gdc"
+        preferences:
+          - spread: node.labels.prod
 
   nginx:
+    image: nd2021/nginx
+    build: ./nginx
+    environment:
+      NGINX_HOST: ${NGINX_HOST}
     depends_on:
       - php
-    build: ./nginx
-    container_name: t_nginx
     volumes:
-      - ${APP_PATH_HOST}:${APP_PATH_CONTAINER}
-#      - ./logs/nginx:/var/log
+      - appdata:${APP_PATH_CONTAINER}
     working_dir: ${APP_PATH_CONTAINER}
     restart: unless-stopped
     ports:
       - "80:80"
-    env_file:
-      - ./.env
-    networks:
-      - app-network
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.placement==gdc"
+        preferences:
+          - spread: node.labels.prod
 
 volumes:
   dbdata:
-    driver: local
-
-networks:
-  app-network:
-    driver: bridge
+  appdata:
